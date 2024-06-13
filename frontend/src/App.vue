@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import Socket from '@/utils/socket'; 
 
 let roomName = '';
 let socket = null;
@@ -9,46 +10,22 @@ const isConnected = ref(false);
 
 const joinGroup = () => {
   const newUrl = `ws://127.0.0.1:8000/ws/chat/${roomName}/`;
-  if (socket && socket.url === newUrl) {
-    console.log(`Already connected to /ws/chat/${roomName}`);
-    return; 
-  };
 
-  if (socket) {
-    socket.close();
-    messages.value = [];
-  };
+  const onOpen = () => isConnected.value = true;
+  const onClose = () => isConnected.value = false; 
+  const onError = () => isConnected.value = false; 
 
-  socket = new WebSocket(newUrl);
+  socket = new Socket(newUrl, onOpen, onClose, onError);
 
-  socket.onopen = function(e) {
-    console.log(`Connected to /ws/chat/${roomName}`);
-    isConnected.value = true;
-  };
-
-  socket.onclose = function(e) {
-    console.log('WebSocket connection closed:', e);
-    isConnected.value = false;
-  };
-
-  socket.onerror = function(e) {
-    console.error('WebSocket error:', e);
-  };
-
-  socket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    messages.value.push(data.message);
-  };
-};
+  socket.on(roomName, ({ message }) => {
+    messages.value.push(message);
+  });
+}
 
 const sendMessage = () => {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ message: message.value }));
-    message.value = '';
-  } else {
-    console.error('WebSocket is not open.');
-  }
-};
+  socket.emit(roomName, { message: message.value });
+  message.value = '';
+}
 </script>
 
 <template>
@@ -62,7 +39,7 @@ const sendMessage = () => {
     </ul>
   </div>
   <div class="roomForm">
-    <input type="text" :value="roomName" @input="roomName = $event.target.value" placeholder="Enter room name"/>
+    <input type="text" v-model="roomName" placeholder="Enter room name"/>
     <button @click="joinGroup">Join</button>
   </div>
   <div class="messageForm">
