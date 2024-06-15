@@ -39,13 +39,13 @@ class Socket {
       this.socket.send(message);
     } else {
       this.messageQueue.push(message);
-    
+    };
   }
 
   on(eventName, handler) {
     if (!this.eventHandlers[eventName]) {
       this.eventHandlers[eventName] = [];
-    }
+    };
     this.eventHandlers[eventName].push(handler);
   }
 
