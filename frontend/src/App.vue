@@ -45,7 +45,7 @@ const sendMessage = () => {
     </ul>
   </div>
   <div class="roomForm">
-    <input type="text" v-model="roomName" placeholder="Enter room name"/>
+    <input type="text" v-model="roomName" placeholder="Enter room name" @keyup.enter="joinGroup"/>
     <button @click="joinGroup">Join</button>
   </div>
   <div class="messageForm">
