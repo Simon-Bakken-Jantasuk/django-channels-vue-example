@@ -27,8 +27,10 @@ const joinGroup = () => {
 }
 
 const sendMessage = () => {
-  socket.emit(roomName, { message: message.value });
-  message.value = '';
+  if (socket) {
+    socket.emit(roomName, { message: message.value });
+    message.value = '';
+  };
 }
 </script>
 
