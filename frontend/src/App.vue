@@ -11,11 +11,15 @@ const isConnected = ref(false);
 const joinGroup = () => {
   const newUrl = `ws://127.0.0.1:8000/ws/chat/${roomName}/`;
 
-  const onOpen = () => isConnected.value = true;
-  const onClose = () => isConnected.value = false; 
-  const onError = () => isConnected.value = false; 
+  const callback = {
+    onOpen: () => isConnected.value = true,
+    onClose: () => isConnected.value = false,
+    onError: () => isConnected.value = false,
+  };
 
-  socket = new Socket(newUrl, onOpen, onClose, onError);
+  socket = new Socket(newUrl, callback); 
+
+  socket.connect();
 
   socket.on(roomName, ({ message }) => {
     messages.value.push(message);

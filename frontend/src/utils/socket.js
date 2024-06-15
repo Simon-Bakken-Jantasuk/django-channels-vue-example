@@ -1,34 +1,35 @@
 class Socket {
-  constructor(url, onOpen, onClose, onError) {
-    this.socket = new WebSocket(url);
+  constructor(url, callback = {}) {
+    this.url = url;
+    this.callback = callback;
     this.eventHandlers = {};
     this.messageQueue = [];
+  }
 
-    this.socket.onmessage = (event) => {
-      const message = event.data;
-      const parsedMessage = JSON.parse(message);
-      const eventName = parsedMessage.eventName;
-      const data = parsedMessage.data;
-
-      if (this.eventHandlers[eventName]) {
-        this.eventHandlers[eventName].forEach(handler => handler(data));
-      }
-    };
+  connect() {
+    this.socket = new WebSocket(this.url);
 
     this.socket.onopen = () => {
-      console.log(`Connected to ${url}`);
-      if (onOpen) onOpen();
+      console.log(`Connected to ${this.url}`);
+      if (this.callback.onOpen) this.callback.onOpen();
       this.flushMessageQueue();
     };
 
     this.socket.onclose = () => {
-      console.log(`Disconnected from ${url}`);
-      if (onClose) onClose();
+      console.log(`Disconnected from ${this.url}`);
+      if (this.callback.onClose) this.callback.onClose();
     };
 
     this.socket.onerror = (error) => {
       console.error('WebSocket error:', error);
-      if (onError) onError();
+      if (this.callback.onError) this.callback.onError();
+    };
+
+    this.socket.onmessage = (event) => {
+      const { eventName, data } = JSON.parse(event.data);
+      if (this.eventHandlers[eventName]) {
+        this.eventHandlers[eventName].forEach(handler => handler(data));
+      };
     };
   }
 
